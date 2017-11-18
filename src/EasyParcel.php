@@ -12,6 +12,7 @@ class EasyParcel
 	protected $api_key;
 	protected $auth_key;
 	protected $url;
+	protected $use_ssl = true;
 
 	public function __construct($api_key, $auth_key)
 	{
@@ -22,11 +23,12 @@ class EasyParcel
 
 	public function useDemo($flag = true)
 	{
-		if ($flag) {
-			$this->url = self::DEMO_URL;
-		} else {
-			$this->url = self::LIVE_URL;
-		}
+		$this->url = $flag ? self::DEMO_URL : self::LIVE_URL;
+	}
+
+	public function useSsl($flag = true)
+	{
+		$this->use_ssl = $flag;
 	}
 
 	protected function curlRequest($action, $query_data)
@@ -35,7 +37,12 @@ class EasyParcel
 
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+		if ($this->use_ssl === false) {
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		}
+
 		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($query_data));
