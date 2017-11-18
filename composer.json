@@ -1,0 +1,21 @@
+{
+	"name": "apih/easyparcel",
+	"description": "A PHP wrapper for EasyParcel Marketplace API",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Mohd Hafizuddin M Marzuki",
+			"email": "hafizuddin_83@yahoo.com"
+		}
+	],
+	"minimum-stability": "dev",
+	"require": {
+		"php": ">=5.4"
+	},
+	"autoload": {
+		"psr-4": {
+			"apih\\EasyParcel\\": "src"
+		}
+	}
+}
