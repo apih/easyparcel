@@ -4,7 +4,7 @@
 
 namespace apih\EasyParcel;
 
-class EasyParcel
+class Client
 {
 	const DEMO_URL = 'http://demo.connect.easyparcel.my/?ac=';
 	const LIVE_URL = 'http://connect.easyparcel.my/?ac=';
