@@ -1,6 +1,6 @@
 <?php
-// A wrapper for EasyParcel Marketplace API
-// Based on EasyParcel Marketplace API Documentation v2.0.0
+// A client for EasyParcel Marketplace API
+// Based on EasyParcel Individual API Document 1.1.0.0 (MALAYSIA)
 
 namespace apih\EasyParcel;
 
@@ -13,6 +13,7 @@ class Client
 	protected $auth_key;
 	protected $url;
 	protected $use_ssl = true;
+	protected $last_error;
 
 	public function __construct($api_key, $auth_key)
 	{
@@ -31,105 +32,117 @@ class Client
 		$this->use_ssl = $flag;
 	}
 
-	protected function curlRequest($action, $query_data)
+	public function getLastError()
 	{
+		return $this->last_error;
+	}
+
+	protected function logError($function, $request, $response)
+	{
+		$this->last_error = [
+			'function' => $function,
+			'request' => $request,
+			'response' => $response
+		];
+
+		$error_message = 'EasyParcel Error:' . PHP_EOL;
+		$error_message .= 'function: ' . $function . PHP_EOL;
+		$error_message .= 'request: ' . PHP_EOL;
+		$error_message .= '-> url: ' . $request['url'] . PHP_EOL;
+		$error_message .= '-> data: ' . json_encode($request['data']) . PHP_EOL;
+		$error_message .= 'response: ' . PHP_EOL;
+		$error_message .= '-> http_code: ' . $response['http_code'] . PHP_EOL;
+		$error_message .= '-> body: ' . $response['body'] . PHP_EOL;
+
+		error_log($error_message);
+	}
+
+	protected function curlInit()
+	{
+		$this->last_error = null;
+
 		$ch = curl_init();
 
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 
 		if ($this->use_ssl === false) {
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 		}
 
-		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($query_data));
-		curl_setopt($ch, CURLOPT_URL, $this->url . $action);
+		return $ch;
+	}
 
-		$response = curl_exec($ch);
+	protected function curlPostRequest($function, $action, $data)
+	{
+		$url = $this->url . $action;
+
+		$data = array_merge([
+			'api' => $this->api_key,
+			'authentication' => $this->auth_key
+		], $data);
+
+		$ch = $this->curlInit();
+
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+		curl_setopt($ch, CURLOPT_URL, $url);
+
+		$body = curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		curl_close($ch);
 
-		return json_decode($response, true);
+		$decoded_body = json_decode($body, true);
+
+		if ($http_code !== 200 || json_last_error() !== JSON_ERROR_NONE) {
+			$this->logError(
+				$function,
+				compact('url', 'data'),
+				compact('http_code', 'body')
+			);
+
+			return null;
+		}
+
+		return $decoded_body;
 	}
 
 	public function checkRate($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPRateCheckingBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPRateCheckingBulk', ['bulk' => $bulk]);
 	}
 
 	public function checkNormalRate($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPNormalRateCheckingBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPNormalRateCheckingBulk', ['bulk' => $bulk]);
 	}
 
 	public function submitOrder($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPSubmitOrderBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPSubmitOrderBulk', ['bulk' => $bulk]);
 	}
 
 	public function makePayment($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPPayOrderBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPPayOrderBulk', ['bulk' => $bulk]);
 	}
 
 	public function getOrderStatus($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPOrderStatusBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPOrderStatusBulk', ['bulk' => $bulk]);
 	}
 
 	public function getParcelStatus($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPParcelStatusBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPParcelStatusBulk', ['bulk' => $bulk]);
 	}
 
 	public function trackParcel($bulk)
 	{
-		$query_data = [
-			'api' => $this->api_key,
-			'authentication' => $this->auth_key,
-			'bulk' => $bulk
-		];
-
-		return $this->curlRequest('MPTrackingBulk', $query_data);
+		return $this->curlPostRequest(__FUNCTION__, 'EPTrackingBulk', ['bulk' => $bulk]);
 	}
 }
 ?>
