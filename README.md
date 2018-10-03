@@ -7,7 +7,7 @@ A PHP wrapper for EasyParcel API. EasyParcel Marketplace API Documentation v2.0.
 
 ## Usage
 1. Incude the file in the code
-2. Instantiate EasyParcel object, and pass API and authentication keys into the constructor
+2. Instantiate EasyParcel client, and pass API and authentication keys into the constructor
 3. Call useDemo() method if you want to use demo account
 4. Call other provided methods as needed
 
@@ -24,11 +24,11 @@ require 'EasyParcel.php';
 $api_key = 'something';
 $auth_key = 'something';
 
-// Instantiate EasyParcel object
-$easyparcel = new apih\EasyParcel\EasyParcel($api_key, $auth_key);
+// Instantiate EasyParcel client
+$easyparcel_client = new apih\EasyParcel\Client($api_key, $auth_key);
 
 // Call this method if you want to use demo account
-$easyparcel->useDemo(); 
+$easyparcel_client->useDemo(); 
 
 // Data that should be passed into the method
 $bulk = [
@@ -44,7 +44,7 @@ $bulk = [
 ];
 
 // Call checkRate() method
-$response = $easyparcel->checkRate($bulk);
+$response = $easyparcel_client->checkRate($bulk);
 
 // Display the response
 echo json_encode($response);
