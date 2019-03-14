@@ -6,8 +6,8 @@ namespace apih\EasyParcel;
 
 class Client
 {
-	const DEMO_URL = 'http://demo.connect.easyparcel.my/?ac=';
-	const LIVE_URL = 'http://connect.easyparcel.my/?ac=';
+	const DEMO_URL = 'https://demo.connect.easyparcel.my/?ac=';
+	const LIVE_URL = 'https://connect.easyparcel.my/?ac=';
 
 	protected $api_key;
 	protected $auth_key;
