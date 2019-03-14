@@ -144,5 +144,10 @@ class Client
 	{
 		return $this->curlPostRequest(__FUNCTION__, 'EPTrackingBulk', ['bulk' => $bulk]);
 	}
+
+	public function checkCredit()
+	{
+		return $this->curlPostRequest(__FUNCTION__, 'EPCheckCreditBalance', []);
+	}
 }
 ?>
